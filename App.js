@@ -10,6 +10,7 @@ import {
 import { useNetInfo } from "@react-native-community/netinfo";
 import Start from "./components/Start";
 import Chat from "./components/Chat";
+import { Alert } from "react-native";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -35,13 +36,11 @@ const App = () => {
 
   useEffect(() => {
     if (netInfo.isConnected === false) {
-      disableNetwork(db).catch((error) =>
-        console.log("Error disabling network:", error)
-      );
-    } else {
-      enableNetwork(db).catch((error) =>
-        console.log("Error enabling network:", error)
-      );
+      Alert.alert("Connection Lost!");
+
+      disableNetwork(db);
+    } else if (netInfo.isConnected === true) {
+      enableNetwork(db);
     }
   }, [netInfo.isConnected]);
 
