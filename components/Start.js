@@ -16,7 +16,7 @@ const Start = ({ navigation }) => {
 
   const backgroundColors = ["#090C08", "#474056", "#8A95A5", "#B9C6AE"];
 
-  const signInAnonymouslyHandler = () => {
+  const signInUser = () => {
     const auth = getAuth();
     signInAnonymously(auth)
       .then((userCredential) => {
@@ -58,7 +58,13 @@ const Start = ({ navigation }) => {
         </View>
         <TouchableOpacity
           style={styles.button}
-          onPress={signInAnonymouslyHandler}
+          onPress={() => {
+            if (name == "") {
+              Alert.alert("You need a username");
+            } else {
+              signInUser();
+            }
+          }}
         >
           <Text style={styles.buttonText}>Start Chatting</Text>
         </TouchableOpacity>

@@ -1,39 +1,36 @@
-import React, { useState, useEffect } from "react";
+import React, { useEffect, useState } from "react";
 import {
   StyleSheet,
   View,
-  Platform,
-  KeyboardAvoidingView,
   Alert,
+  KeyboardAvoidingView,
+  Platform,
 } from "react-native";
-import { Bubble, GiftedChat, InputToolbar } from "react-native-gifted-chat";
-import AsyncStorage from "@react-native-async-storage/async-storage";
+import { GiftedChat, Bubble, InputToolbar } from "react-native-gifted-chat";
 import {
   collection,
+  addDoc,
+  onSnapshot,
   query,
   orderBy,
-  onSnapshot,
-  addDoc,
 } from "firebase/firestore";
+import AsyncStorage from "@react-native-async-storage/async-storage";
+import CustomActions from "./CustomActions";
+import MapView from "react-native-maps";
 
-const Chat = ({ route, navigation }) => {
-  const { name, bgColor, userID, db, isConnected } = route.params;
-
+export const Chat = ({ route, navigation }) => {
+  const { db, storage, isConnected } = route.params;
+  const { username, bgColor, userID } = route.params;
   const [messages, setMessages] = useState([]);
+  const collectionName = "messages";
 
   useEffect(() => {
-    navigation.setOptions({ title: name });
+    navigation.setOptions({ title: username });
 
     let unsubChat = null;
-
-    const loadMessages = async () => {
-      const cachedMessages = await loadCachedList();
-      setMessages(cachedMessages);
-    };
-
     if (isConnected) {
       const qCollect = query(
-        collection(db, "messages"), // Ensure the correct collection name is used here
+        collection(db, collectionName),
         orderBy("createdTime", "desc")
       );
       unsubChat = onSnapshot(qCollect, (chatData) => {
@@ -41,7 +38,9 @@ const Chat = ({ route, navigation }) => {
         chatData.forEach((mesg) => {
           let newItem = {
             ...mesg.data(),
+            _id: mesg.id,
             createdAt: new Date(mesg.data().createdTime.seconds * 1000),
+            user: mesg.data().user ?? { _id: "unknown", name: "Unknown" },
           };
           newList.push(newItem);
         });
@@ -78,49 +77,72 @@ const Chat = ({ route, navigation }) => {
     }
   };
 
-  const onSend = async (newMessages) => {
-    setMessages((previousMessages) =>
-      GiftedChat.append(previousMessages, newMessages)
-    );
-    let newItem = {
-      ...newMessages[0],
-      createdTime: new Date(),
-    };
-    await addDoc(collection(db, "messages"), newItem); // Ensure the correct collection name is used here
+  const onSend = async (newMessages = []) => {
+    try {
+      const message = newMessages[0];
+      const newItem = {
+        ...message,
+        createdTime: new Date(),
+        user: {
+          _id: userID,
+          name: username ?? "Unknown User",
+        },
+      };
+      await addDoc(collection(db, collectionName), newItem);
+    } catch (error) {
+      Alert.alert("Error sending message", error.message);
+    }
   };
 
-  const renderBubble = (props) => {
-    return (
-      <Bubble
-        {...props}
-        wrapperStyle={{
-          right: {
-            backgroundColor: "#000",
-          },
-          left: {
-            backgroundColor: "#FFF",
-          },
-        }}
-      />
-    );
-  };
+  const renderBubble = (props) => (
+    <Bubble
+      {...props}
+      wrapperStyle={{
+        right: { backgroundColor: "#000" },
+        left: { backgroundColor: "#FFF" },
+      }}
+      textStyle={{
+        right: { color: "green" },
+        left: { color: "red" },
+      }}
+    />
+  );
 
-  const renderInputToolbar = (props) => {
-    if (isConnected) return <InputToolbar {...props} />;
-    else return null;
+  const renderInputToolbar = (props) =>
+    isConnected ? <InputToolbar {...props} /> : null;
+
+  const renderCustomActions = (props) => (
+    <CustomActions storage={storage} userID={userID} onSend={onSend} />
+  );
+
+  const renderCustomView = (props) => {
+    const { currentMessage } = props;
+    if (currentMessage.location) {
+      return (
+        <MapView
+          style={{ width: 150, height: 100, borderRadius: 13, margin: 3 }}
+          region={{
+            latitude: currentMessage.location.latitude,
+            longitude: currentMessage.location.longitude,
+            latitudeDelta: 0.0922,
+            longitudeDelta: 0.0421,
+          }}
+        />
+      );
+    }
+    return null;
   };
 
   return (
     <View style={[styles.container, { backgroundColor: bgColor }]}>
       <GiftedChat
         messages={messages}
+        onSend={onSend}
         renderBubble={renderBubble}
         renderInputToolbar={renderInputToolbar}
-        onSend={(messages) => onSend(messages)}
-        user={{
-          _id: userID,
-          name: name,
-        }}
+        renderActions={renderCustomActions}
+        renderCustomView={renderCustomView}
+        user={{ _id: userID, name: username }}
       />
       {Platform.OS === "android" ? (
         <KeyboardAvoidingView behavior="height" />

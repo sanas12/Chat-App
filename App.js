@@ -1,18 +1,22 @@
-import React, { useEffect } from "react";
+import React from "react";
+import { ActionSheetProvider } from "@expo/react-native-action-sheet";
 import { NavigationContainer } from "@react-navigation/native";
 import { createNativeStackNavigator } from "@react-navigation/native-stack";
-import { initializeApp } from "firebase/app";
+import { initializeApp, getApps, getApp } from "firebase/app";
 import {
   getFirestore,
-  disableNetwork,
   enableNetwork,
+  disableNetwork,
 } from "firebase/firestore";
+import { getStorage } from "firebase/storage";
+import { LogBox } from "react-native";
 import { useNetInfo } from "@react-native-community/netinfo";
+import { Chat } from "./components/Chat";
 import Start from "./components/Start";
-import Chat from "./components/Chat";
-import { Alert } from "react-native";
+import { useEffect } from "react";
 
-// Your web app's Firebase configuration
+LogBox.ignoreAllLogs();
+
 const firebaseConfig = {
   apiKey: "AIzaSyDWABV-3-drsK-c1vDXejvG4fw4pVziDd8",
   authDomain: "chattingapp-23633.firebaseapp.com",
@@ -22,40 +26,46 @@ const firebaseConfig = {
   appId: "1:786361937573:web:2074b86e9f05f5f45c274c",
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+let app;
+if (!getApps().length) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
 
-// Initialize Cloud Firestore and get a reference to the service
 const db = getFirestore(app);
-
-// Create the navigator
+const storage = getStorage(app);
 const Stack = createNativeStackNavigator();
 
 const App = () => {
   const netInfo = useNetInfo();
 
   useEffect(() => {
-    if (netInfo.isConnected === false) {
-      Alert.alert("Connection Lost!");
-
-      disableNetwork(db);
-    } else if (netInfo.isConnected === true) {
+    if (netInfo.isConnected) {
       enableNetwork(db);
+    } else {
+      disableNetwork(db);
     }
   }, [netInfo.isConnected]);
 
   return (
-    <NavigationContainer>
-      <Stack.Navigator initialRouteName="Start">
-        <Stack.Screen name="Start" component={Start} />
-        <Stack.Screen
-          name="Chat"
-          component={Chat}
-          initialParams={{ db: db, isConnected: netInfo.isConnected }}
-          options={({ route }) => ({ title: route.params.name })}
-        />
-      </Stack.Navigator>
-    </NavigationContainer>
+    <ActionSheetProvider>
+      <NavigationContainer>
+        <Stack.Navigator initialRouteName="Start">
+          <Stack.Screen name="Start" component={Start} />
+          <Stack.Screen
+            name="Chat"
+            component={Chat}
+            initialParams={{
+              db: db,
+              storage: storage,
+              isConnected: netInfo.isConnected,
+            }}
+            options={({ route }) => ({ title: route.params.name })}
+          />
+        </Stack.Navigator>
+      </NavigationContainer>
+    </ActionSheetProvider>
   );
 };
 
