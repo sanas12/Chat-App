@@ -11,6 +11,7 @@ const CustomActions = ({
   onSend,
   storage,
   userID,
+  username, // Add username here
 }) => {
   const actionSheet = useActionSheet();
 
@@ -21,31 +22,63 @@ const CustomActions = ({
   };
 
   const uploadAndSendImage = async (imageURI) => {
-    const uniqueRefString = generateReference(imageURI);
-    const newUploadRef = ref(storage, uniqueRefString);
-    const response = await fetch(imageURI);
-    const blob = await response.blob();
-    uploadBytes(newUploadRef, blob).then(async (snapshot) => {
+    try {
+      const uniqueRefString = generateReference(imageURI);
+      const newUploadRef = ref(storage, uniqueRefString);
+      const response = await fetch(imageURI);
+      const blob = await response.blob();
+      const snapshot = await uploadBytes(newUploadRef, blob);
       const imageURL = await getDownloadURL(snapshot.ref);
-      onSend({ image: imageURL });
-    });
+      onSend([
+        {
+          _id: new Date().getTime(),
+          image: imageURL,
+          user: { _id: userID, name: username }, // Use username here
+          createdAt: new Date(),
+        },
+      ]);
+      console.log("Image sent successfully:", imageURL);
+    } catch (error) {
+      console.error("Error uploading image:", error);
+      Alert.alert("Error uploading image", error.message);
+    }
   };
 
   const pickImage = async () => {
-    let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
-    if (permissions?.granted) {
-      let result = await ImagePicker.launchImageLibraryAsync();
-      if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-      else Alert.alert("Permissions haven't been granted.");
+    try {
+      let permissions = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (permissions.granted) {
+        let result = await ImagePicker.launchImageLibraryAsync();
+        if (!result.canceled) {
+          await uploadAndSendImage(result.assets[0].uri);
+        } else {
+          Alert.alert("You haven't selected any image.");
+        }
+      } else {
+        Alert.alert("Permissions haven't been granted.");
+      }
+    } catch (error) {
+      console.error("Error picking image:", error);
+      Alert.alert("Error picking image", error.message);
     }
   };
 
   const takePhoto = async () => {
-    let permissions = await ImagePicker.requestCameraPermissionsAsync();
-    if (permissions?.granted) {
-      let result = await ImagePicker.launchCameraAsync();
-      if (!result.canceled) await uploadAndSendImage(result.assets[0].uri);
-      else Alert.alert("Permissions haven't been granted.");
+    try {
+      let permissions = await ImagePicker.requestCameraPermissionsAsync();
+      if (permissions.granted) {
+        let result = await ImagePicker.launchCameraAsync();
+        if (!result.canceled) {
+          await uploadAndSendImage(result.assets[0].uri);
+        } else {
+          Alert.alert("You haven't taken any photo.");
+        }
+      } else {
+        Alert.alert("Permissions haven't been granted.");
+      }
+    } catch (error) {
+      console.error("Error taking photo:", error);
+      Alert.alert("Error taking photo", error.message);
     }
   };
 
@@ -55,12 +88,18 @@ const CustomActions = ({
       if (permissions.granted) {
         const location = await Location.getCurrentPositionAsync({});
         if (location) {
-          onSend({
-            location: {
-              longitude: location.coords.longitude,
-              latitude: location.coords.latitude,
+          onSend([
+            {
+              _id: new Date().getTime(),
+              location: {
+                longitude: location.coords.longitude,
+                latitude: location.coords.latitude,
+              },
+              user: { _id: userID, name: username }, // Use username here
+              createdAt: new Date(),
             },
-          });
+          ]);
+          console.log("Location sent successfully:", location);
         } else {
           Alert.alert("Error occurred while fetching location");
         }
@@ -68,7 +107,7 @@ const CustomActions = ({
         Alert.alert("Permissions haven't been granted.");
       }
     } catch (error) {
-      console.error("Error getting location: ", error);
+      console.error("Error getting location:", error);
       Alert.alert("Error getting location", error.message);
     }
   };

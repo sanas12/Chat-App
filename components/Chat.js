@@ -112,7 +112,12 @@ export const Chat = ({ route, navigation }) => {
     isConnected ? <InputToolbar {...props} /> : null;
 
   const renderCustomActions = (props) => (
-    <CustomActions storage={storage} userID={userID} onSend={onSend} />
+    <CustomActions
+      storage={storage}
+      userID={userID}
+      username={username}
+      onSend={onSend}
+    />
   );
 
   const renderCustomView = (props) => {
@@ -131,6 +136,15 @@ export const Chat = ({ route, navigation }) => {
       );
     }
     return null;
+  };
+
+  const renderMessageImage = (props) => {
+    return (
+      <MessageImage
+        {...props}
+        imageStyle={{ width: 200, height: 200, borderRadius: 13, margin: 3 }}
+      />
+    );
   };
 
   return (
