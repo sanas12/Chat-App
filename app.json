@@ -11,6 +11,14 @@
       "resizeMode": "contain",
       "backgroundColor": "#ffffff"
     },
+    "extra": {
+      "firebaseApiKey": "AIzaSyDWABV-3-drsK-c1vDXejvG4fw4pVziDd8",
+      "firebaseAuthDomain": "chattingapp-23633.firebaseapp.com",
+      "firebaseProjectId": "chattingapp-23633",
+      "firebaseStorageBucket": "chattingapp-23633.appspot.com",
+      "firebaseMessagingSenderId": "786361937573",
+      "firebaseAppId": "1:786361937573:web:2074b86e9f05f5f45c274c"
+    },
     "ios": {
       "supportsTablet": true
     },
