@@ -14,16 +14,17 @@ import { useNetInfo } from "@react-native-community/netinfo";
 import { Chat } from "./components/Chat";
 import Start from "./components/Start";
 import { useEffect } from "react";
+import Constants from "expo-constants";
 
 LogBox.ignoreAllLogs();
 
 const firebaseConfig = {
-  apiKey: "AIzaSyDWABV-3-drsK-c1vDXejvG4fw4pVziDd8",
-  authDomain: "chattingapp-23633.firebaseapp.com",
-  projectId: "chattingapp-23633",
-  storageBucket: "chattingapp-23633.appspot.com",
-  messagingSenderId: "786361937573",
-  appId: "1:786361937573:web:2074b86e9f05f5f45c274c",
+  apiKey: Constants.expoConfig.extra.firebaseApiKey,
+  authDomain: Constants.expoConfig.extra.firebaseAuthDomain,
+  projectId: Constants.expoConfig.extra.firebaseProjectId,
+  storageBucket: Constants.expoConfig.extra.firebaseStorageBucket,
+  messagingSenderId: Constants.expoConfig.extra.firebaseMessagingSenderId,
+  appId: Constants.expoConfig.extra.firebaseAppId,
 };
 
 let app;
