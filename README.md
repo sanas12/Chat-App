@@ -23,25 +23,6 @@ time.
 reader so that I can engage with a chat interface
 
 # Project Setup
-## Dependencies
-+ "@react-navigation/native": "^6.1.17",
-+ "@react-navigation/native-stack": "^6.9.26",
-+ "expo": "~50.0.17",
-+ "expo-status-bar": "~1.11.1",
-+ "firebase": "^10.3.1",
-+ "react": "18.2.0",
-+ "react-native": "0.73.6",
-+ "react-native-gifted-chat": "^2.4.0",
-+ "react-native-web": "~0.19.6",
-+ "react-dom": "18.2.0",
-+ "@expo/metro-runtime": "~3.1.3",
-+ "@react-native-async-storage/async-storage": "1.21.0",
-+ "@react-native-community/netinfo": "11.1.0",
-+ "expo-image-picker": "~14.7.1",
-+ "expo-media-library": "~15.9.2",
-+ "expo-location": "~16.5.5",
-+ "react-native-maps": "1.10.0"
-
 ## Testing Setup
 - Android
 
